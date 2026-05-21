@@ -1,45 +1,159 @@
+:root {
+    --primary: #2E6C7B;
+    --primary-dark: #1e4a55;
+    --accent: #F4A261;
+    --accent-dark: #e76f2d;
+    --light-bg: #f8f9fa;
+    --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f2f5;
+    background: linear-gradient(135deg, #e0eaf5 0%, #f5f7fa 100%);
     margin: 0;
     padding: 20px;
+    min-height: 100vh;
 }
+
 .container {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: auto;
 }
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    color: var(--primary);
+    font-size: 2.5rem;
+    margin-bottom: 0;
+}
+
+header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
 .card {
     background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 24px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s;
 }
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card h2 {
+    color: var(--primary);
+    border-left: 4px solid var(--accent);
+    padding-left: 16px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
 input, button {
-    padding: 8px 12px;
-    margin: 6px 4px;
-    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 8px 8px 8px 0;
+    border-radius: 8px;
     border: 1px solid #ccc;
+    font-size: 1rem;
+    transition: all 0.2s;
 }
+
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(244,162,97,0.2);
+}
+
 button {
-    background: #007bff;
+    background: var(--primary);
     color: white;
     border: none;
     cursor: pointer;
+    font-weight: bold;
+    padding: 10px 20px;
 }
+
 button:hover {
-    background: #0056b3;
+    background: var(--primary-dark);
+    transform: translateY(-1px);
 }
+
+button#cancelarBtn {
+    background: #6c757d;
+}
+
+button#cancelarBtn:hover {
+    background: #5a6268;
+}
+
+.edit-btn, .delete-btn {
+    padding: 5px 10px;
+    margin: 0 4px;
+    font-size: 0.9rem;
+}
+
+.edit-btn {
+    background: var(--accent);
+}
+
+.edit-btn:hover {
+    background: var(--accent-dark);
+}
+
+.delete-btn {
+    background: #dc3545;
+}
+
+.delete-btn:hover {
+    background: #bb2d3b;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 16px;
+    border-radius: 12px;
+    overflow: hidden;
 }
+
 th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
+    padding: 12px;
     text-align: left;
+    border-bottom: 1px solid #eee;
 }
+
 th {
-    background-color: #007bff;
+    background-color: var(--primary);
     color: white;
+    font-weight: 600;
+}
+
+tr:hover {
+    background-color: #f1f5f9;
+}
+
+.webhook-card {
+    background: #fff9ef;
+    border: 1px solid var(--accent);
+}
+
+.webhook-card h2 {
+    color: var(--accent-dark);
+}
+
+#msgEntrega {
+    margin-top: 12px;
+    padding: 8px;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 8px;
+    display: inline-block;
 }

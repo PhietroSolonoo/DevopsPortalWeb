@@ -3,36 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal do Aluno</title>
+    <title>Catálogo de Produtos</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>📚 Portal do Aluno</h1>
+        <header>
+            <h1>🏬 Catálogo de Produtos</h1>
+            <p>Gerencie seu estoque com facilidade</p>
+        </header>
 
+        <!-- Formulário de cadastro/edição -->
         <div class="card">
-            <h2>Cadastrar / Editar Aluno</h2>
-            <form id="alunoForm">
-                <input type="text" id="rm" placeholder="RM (ex: RM12345)" required>
-                <input type="text" id="nome" placeholder="Nome completo" required>
-                <input type="text" id="turma" placeholder="Turma (ex: 3º ADS)" required>
-                <button type="submit">Salvar</button>
+            <h2>📦 Cadastrar / Editar Produto</h2>
+            <form id="produtoForm">
+                <input type="text" id="codigo" placeholder="Código (ex: P001)" required>
+                <input type="text" id="nome" placeholder="Nome do produto" required>
+                <input type="number" step="0.01" id="preco" placeholder="Preço (R$)" required>
+                <input type="number" id="estoque" placeholder="Quantidade em estoque" required>
+                <button type="submit" id="btnSalvar">Salvar</button>
                 <button type="button" id="cancelarBtn">Cancelar</button>
             </form>
         </div>
 
+        <!-- Lista de produtos -->
         <div class="card">
-            <h2>📋 Lista de Alunos</h2>
-            <table id="tabelaAlunos">
+            <h2>📋 Lista de Produtos</h2>
+            <table id="tabelaProdutos">
                 <thead>
-                    <tr><th>RM</th><th>Nome</th><th>Turma</th><th>Ações</th></tr>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome</th>
+                        <th>Preço (R$)</th>
+                        <th>Estoque</th>
+                        <th>Ações</th>
+                    </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
 
-        <div class="card">
+        <!-- Formulário de entrega do desafio (webhook) -->
+        <div class="card webhook-card">
             <h2>✅ Entrega do Desafio</h2>
+            <p>Preencha seus dados para concluir a atividade</p>
             <form id="entregaForm">
                 <input type="text" id="entregaNome" placeholder="Seu nome" required>
                 <input type="text" id="entregaRm" placeholder="Seu RM" required>
@@ -44,73 +58,78 @@
     </div>
 
     <script>
-        const API_BASE = '/alunos';
+        const API_BASE = '/produtos';
 
-        async function carregarAlunos() {
+        async function carregarProdutos() {
             const res = await fetch(API_BASE);
-            const alunos = await res.json();
-            const tbody = document.querySelector('#tabelaAlunos tbody');
+            const produtos = await res.json();
+            const tbody = document.querySelector('#tabelaProdutos tbody');
             tbody.innerHTML = '';
-            alunos.forEach(aluno => {
+            produtos.forEach(produto => {
                 const row = tbody.insertRow();
-                row.insertCell(0).innerText = aluno.rmAluno;
-                row.insertCell(1).innerText = aluno.nome;
-                row.insertCell(2).innerText = aluno.turma;
-                const actions = row.insertCell(3);
+                row.insertCell(0).innerText = produto.codigo;
+                row.insertCell(1).innerText = produto.nome;
+                row.insertCell(2).innerText = `R$ ${produto.preco.toFixed(2)}`;
+                row.insertCell(3).innerText = produto.quantidadeEstoque;
+                const actions = row.insertCell(4);
                 actions.innerHTML = `
-                    <button onclick="editar('${aluno.rmAluno}', '${aluno.nome}', '${aluno.turma}')">✏️</button>
-                    <button onclick="excluir('${aluno.rmAluno}')">🗑️</button>
+                    <button class="edit-btn" onclick="editar('${produto.codigo}', '${produto.nome}', ${produto.preco}, ${produto.quantidadeEstoque})">✏️</button>
+                    <button class="delete-btn" onclick="excluir('${produto.codigo}')">🗑️</button>
                 `;
             });
         }
 
-        document.getElementById('alunoForm').addEventListener('submit', async (e) => {
+        document.getElementById('produtoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const rm = document.getElementById('rm').value.trim();
+            const codigo = document.getElementById('codigo').value.trim();
             const nome = document.getElementById('nome').value.trim();
-            const turma = document.getElementById('turma').value.trim();
-            const aluno = { rmAluno: rm, nome, turma };
+            const preco = parseFloat(document.getElementById('preco').value);
+            const quantidadeEstoque = parseInt(document.getElementById('estoque').value);
+            const produto = { codigo, nome, preco, quantidadeEstoque };
+
             let method = 'POST';
             let url = API_BASE;
-            const isEditing = document.getElementById('alunoForm').hasAttribute('data-edit-mode');
+            const isEditing = document.getElementById('produtoForm').hasAttribute('data-edit-mode');
             if (isEditing) {
                 method = 'PUT';
-                url = `${API_BASE}/${rm}`;
+                url = `${API_BASE}/${codigo}`;
             }
+
             const res = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(aluno)
+                body: JSON.stringify(produto)
             });
             if (res.ok) {
-                alert(isEditing ? 'Aluno atualizado!' : 'Aluno criado!');
+                alert(isEditing ? 'Produto atualizado!' : 'Produto criado!');
                 cancelarEdicao();
-                carregarAlunos();
+                carregarProdutos();
             } else {
-                alert('Erro ao salvar aluno.');
+                alert('Erro ao salvar produto.');
             }
         });
 
-        function editar(rm, nome, turma) {
-            document.getElementById('rm').value = rm;
+        function editar(codigo, nome, preco, estoque) {
+            document.getElementById('codigo').value = codigo;
             document.getElementById('nome').value = nome;
-            document.getElementById('turma').value = turma;
-            document.getElementById('alunoForm').setAttribute('data-edit-mode', 'true');
+            document.getElementById('preco').value = preco;
+            document.getElementById('estoque').value = estoque;
+            document.getElementById('produtoForm').setAttribute('data-edit-mode', 'true');
             document.getElementById('cancelarBtn').style.display = 'inline-block';
         }
 
         function cancelarEdicao() {
-            document.getElementById('alunoForm').removeAttribute('data-edit-mode');
-            document.getElementById('alunoForm').reset();
+            document.getElementById('produtoForm').removeAttribute('data-edit-mode');
+            document.getElementById('produtoForm').reset();
             document.getElementById('cancelarBtn').style.display = 'none';
         }
 
-        async function excluir(rm) {
-            if (confirm(`Deseja excluir o aluno RM ${rm}?`)) {
-                const res = await fetch(`${API_BASE}/${rm}`, { method: 'DELETE' });
+        async function excluir(codigo) {
+            if (confirm(`Deseja excluir o produto ${codigo}?`)) {
+                const res = await fetch(`${API_BASE}/${codigo}`, { method: 'DELETE' });
                 if (res.ok) {
                     alert('Excluído!');
-                    carregarAlunos();
+                    carregarProdutos();
                 } else {
                     alert('Erro ao excluir.');
                 }
@@ -119,12 +138,14 @@
 
         document.getElementById('cancelarBtn').addEventListener('click', cancelarEdicao);
 
+        // Webhook (mesmo código, apenas para entrega)
         document.getElementById('entregaForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('entregaNome').value.trim();
             const rm = document.getElementById('entregaRm').value.trim();
             const turma = document.getElementById('entregaTurma').value.trim();
             const payload = { nome, rm, turma };
+
             const res = await fetch('/entregas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -137,7 +158,8 @@
             }
         });
 
-        carregarAlunos();
+        // Inicializar
+        carregarProdutos();
     </script>
 </body>
 </html>
