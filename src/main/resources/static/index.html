@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Aluno</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Portal do Aluno</h1>
+
+        <div class="card">
+            <h2>Cadastrar / Editar Aluno</h2>
+            <form id="alunoForm">
+                <input type="text" id="rm" placeholder="RM (ex: RM12345)" required>
+                <input type="text" id="nome" placeholder="Nome completo" required>
+                <input type="text" id="turma" placeholder="Turma (ex: 3º ADS)" required>
+                <button type="submit">Salvar</button>
+                <button type="button" id="cancelarBtn">Cancelar</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>📋 Lista de Alunos</h2>
+            <table id="tabelaAlunos">
+                <thead>
+                    <tr><th>RM</th><th>Nome</th><th>Turma</th><th>Ações</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>✅ Entrega do Desafio</h2>
+            <form id="entregaForm">
+                <input type="text" id="entregaNome" placeholder="Seu nome" required>
+                <input type="text" id="entregaRm" placeholder="Seu RM" required>
+                <input type="text" id="entregaTurma" placeholder="Turma" required>
+                <button type="submit">Enviar conclusão</button>
+            </form>
+            <div id="msgEntrega"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/alunos';
+
+        async function carregarAlunos() {
+            const res = await fetch(API_BASE);
+            const alunos = await res.json();
+            const tbody = document.querySelector('#tabelaAlunos tbody');
+            tbody.innerHTML = '';
+            alunos.forEach(aluno => {
+                const row = tbody.insertRow();
+                row.insertCell(0).innerText = aluno.rmAluno;
+                row.insertCell(1).innerText = aluno.nome;
+                row.insertCell(2).innerText = aluno.turma;
+                const actions = row.insertCell(3);
+                actions.innerHTML = `
+                    <button onclick="editar('${aluno.rmAluno}', '${aluno.nome}', '${aluno.turma}')">✏️</button>
+                    <button onclick="excluir('${aluno.rmAluno}')">🗑️</button>
+                `;
+            });
+        }
+
+        document.getElementById('alunoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rm = document.getElementById('rm').value.trim();
+            const nome = document.getElementById('nome').value.trim();
+            const turma = document.getElementById('turma').value.trim();
+            const aluno = { rmAluno: rm, nome, turma };
+            let method = 'POST';
+            let url = API_BASE;
+            const isEditing = document.getElementById('alunoForm').hasAttribute('data-edit-mode');
+            if (isEditing) {
+                method = 'PUT';
+                url = `${API_BASE}/${rm}`;
+            }
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(aluno)
+            });
+            if (res.ok) {
+                alert(isEditing ? 'Aluno atualizado!' : 'Aluno criado!');
+                cancelarEdicao();
+                carregarAlunos();
+            } else {
+                alert('Erro ao salvar aluno.');
+            }
+        });
+
+        function editar(rm, nome, turma) {
+            document.getElementById('rm').value = rm;
+            document.getElementById('nome').value = nome;
+            document.getElementById('turma').value = turma;
+            document.getElementById('alunoForm').setAttribute('data-edit-mode', 'true');
+            document.getElementById('cancelarBtn').style.display = 'inline-block';
+        }
+
+        function cancelarEdicao() {
+            document.getElementById('alunoForm').removeAttribute('data-edit-mode');
+            document.getElementById('alunoForm').reset();
+            document.getElementById('cancelarBtn').style.display = 'none';
+        }
+
+        async function excluir(rm) {
+            if (confirm(`Deseja excluir o aluno RM ${rm}?`)) {
+                const res = await fetch(`${API_BASE}/${rm}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Excluído!');
+                    carregarAlunos();
+                } else {
+                    alert('Erro ao excluir.');
+                }
+            }
+        }
+
+        document.getElementById('cancelarBtn').addEventListener('click', cancelarEdicao);
+
+        document.getElementById('entregaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('entregaNome').value.trim();
+            const rm = document.getElementById('entregaRm').value.trim();
+            const turma = document.getElementById('entregaTurma').value.trim();
+            const payload = { nome, rm, turma };
+            const res = await fetch('/entregas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const msg = await res.text();
+            document.getElementById('msgEntrega').innerText = msg;
+            if (res.ok) {
+                document.getElementById('entregaForm').reset();
+            }
+        });
+
+        carregarAlunos();
+    </script>
+</body>
+</html>
